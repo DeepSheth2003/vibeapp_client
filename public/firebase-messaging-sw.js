@@ -11,9 +11,23 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(function (payload) {
-  self.registration.showNotification(payload.notification.title, {
+// messaging.onBackgroundMessage(function (payload) {
+//   self.registration.showNotification(payload.notification.title, {
+//     body: payload.notification.body,
+//     icon: "/logo192.png",
+//   });
+// });
+
+// Background message handler
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
     body: payload.notification.body,
-    icon: "/logo192.png",
-  });
+    icon: '/logo.png', // Aapke app ka logo path
+    data: payload.data // chatId yahan aayegi
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
