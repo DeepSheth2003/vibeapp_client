@@ -7,15 +7,20 @@ import {
   Container,
   rem,
   Group,
+  Button,
 } from "@mantine/core";
 import {
+  IconDownload,
   IconMessageHeart,
   IconSparkles,
   IconUsersGroup,
 } from "@tabler/icons-react";
 import { SiLivechat } from "react-icons/si";
+import usePWAInstall from "../app/usePWAInstall";
 
 export default function Dashboard() {
+  const { install, canInstall } = usePWAInstall();
+
   // Advertise Quotes Suggestions:
   // 1. "Echo your soul, one vibe at a time."
   // 2. "Where conversations turn into connections."
@@ -105,7 +110,6 @@ export default function Dashboard() {
               >
                 The Ultimate Vibe
               </Text>
-
               <Text
                 ta="center"
                 px="md"
@@ -122,6 +126,22 @@ export default function Dashboard() {
                 vibing chat with VibeApp — where every chat is a soul-stirring
                 vibe!"
               </Text>
+
+              {/* // Installation */}
+              {canInstall && (
+                <Button
+                  style={{ marginTop: "20px" }}
+                  variant="gradient"
+                  gradient={{ from: "indigo", to: "pink" }}
+                  onClick={install}
+                >
+                  <IconDownload
+                    size={rem(16)}
+                    style={{ marginRight: rem(8) }}
+                  />
+                  Download VibeApp
+                </Button>
+              )}
             </Stack>
 
             {/* --- Developed by Credit --- */}
