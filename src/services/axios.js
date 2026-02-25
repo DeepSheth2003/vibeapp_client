@@ -4,6 +4,7 @@ import { logout } from "../features/auth/authSlice";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_ENDPOINT || "http://localhost:5000/api",
+  withCredentials: true,
 });
 
 api.interceptors.request.use(
