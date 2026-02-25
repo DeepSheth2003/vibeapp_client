@@ -3,7 +3,7 @@ import { store } from "../app/store";
 import { logout } from "../features/auth/authSlice";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_ENDPOINT || "http://localhost:5000/api",
 });
 
 api.interceptors.request.use(
@@ -16,7 +16,7 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 api.interceptors.response.use(
@@ -26,7 +26,7 @@ api.interceptors.response.use(
       store.dispatch(logout());
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

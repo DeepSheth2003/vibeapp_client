@@ -7,6 +7,7 @@ import {
   IconSearch,
   IconBell,
   IconSettings,
+  IconUserFilled,
 } from "@tabler/icons-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -22,9 +23,9 @@ const Sidebar = ({ onAction }) => {
     { icon: <IconMessageCircle size={iconSize} />, path: "/chat" },
     { icon: <IconSearch size={iconSize} />, path: "/search" },
     { icon: <IconBell size={iconSize} />, path: "/notifications" },
+    { icon: <IconUserFilled size={iconSize} />, path: "/profile" },
     { icon: <IconSettings size={iconSize} />, path: "/settings" },
   ];
-
 
   useEffect(() => {
     const fetchUnread = async () => {
@@ -57,7 +58,11 @@ const Sidebar = ({ onAction }) => {
     >
       <Stack gap="lg">
         {navItems.map((item, index) => (
-          <Tooltip key={index} label={item.path.replace("/", "") || "chats"} position="right">
+          <Tooltip
+            key={index}
+            label={item.path.replace("/", "") || "chats"}
+            position="right"
+          >
             <ActionIcon
               variant={location.pathname === item.path ? "filled" : "subtle"}
               size="lg"

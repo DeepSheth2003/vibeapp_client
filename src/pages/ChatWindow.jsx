@@ -1,17 +1,31 @@
-import { useState, useEffect, useRef } from 'react';
-import { Box, Stack, ScrollArea, TextInput, ActionIcon, Group, Avatar, Text, Paper, Flex, Loader, Center } from '@mantine/core';
-import { IconSend, IconArrowLeft, IconCheck } from '@tabler/icons-react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useMediaQuery } from '@mantine/hooks';
-import io from 'socket.io-client';
-import api from '../services/axios';
-import { useSelector } from 'react-redux';
+import { useState, useEffect, useRef } from "react";
+import {
+  Box,
+  Stack,
+  ScrollArea,
+  TextInput,
+  ActionIcon,
+  Group,
+  Avatar,
+  Text,
+  Paper,
+  Flex,
+  Loader,
+  Center,
+} from "@mantine/core";
+import { IconSend, IconArrowLeft, IconCheck } from "@tabler/icons-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useMediaQuery } from "@mantine/hooks";
+import io from "socket.io-client";
+import api from "../services/axios";
+import { useSelector } from "react-redux";
 
-const SOCKET_ENDPOINT = "http://localhost:5000";
+const SOCKET_ENDPOINT =
+  import.meta.env.VITE_SOCKET_ENDPOINT || "http://localhost:5000";
 let socket;
 
 export default function ChatWindow() {
-const { chatId } = useParams();
+  const { chatId } = useParams();
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const viewport = useRef(null);
@@ -26,6 +40,20 @@ const { chatId } = useParams();
   const [socketConnected, setSocketConnected] = useState(false);
 
   const user = useSelector((state) => state.auth.user);
+
+  /* ================= Track Chat for noti ================= */
+
+  useEffect(() => {
+    if (socket && chatId) {
+      socket.emit("active chat", chatId);
+    }
+
+    return () => {
+      if (socket && chatId) {
+        socket.emit("leave active chat", chatId);
+      }
+    };
+  }, [chatId]);
 
   /* ================= SOCKET INIT ================= */
   useEffect(() => {
@@ -54,7 +82,7 @@ const { chatId } = useParams();
         setPartner((prev) => ({
           ...prev,
           isOnline: data.isOnline,
-          lastSeen: data.lastSeen
+          lastSeen: data.lastSeen,
         }));
       }
     };
@@ -99,11 +127,13 @@ const { chatId } = useParams();
     try {
       setLoading(true);
 
-      const { data: msgs } = await api.get(`/message/${chatId}?page=1&limit=50`);
+      const { data: msgs } = await api.get(
+        `/message/${chatId}?page=1&limit=50`,
+      );
       setMessages(msgs);
 
       const { data: chatData } = await api.get(`/chat/${chatId}`);
-      const otherUser = chatData.participants.find(p => p._id !== user._id);
+      const otherUser = chatData.participants.find((p) => p._id !== user._id);
       setPartner(otherUser);
 
       await api.patch(`/message/read/${chatId}`);
@@ -151,7 +181,10 @@ const { chatId } = useParams();
     setTyping(false);
 
     try {
-      const { data } = await api.post('/message', { content: newMessage, chatId });
+      const { data } = await api.post("/message", {
+        content: newMessage,
+        chatId,
+      });
       setNewMessage("");
       socket.emit("new message", data);
       setMessages((prev) => [...prev, data]);
@@ -165,7 +198,7 @@ const { chatId } = useParams();
       setTimeout(() => {
         viewport.current.scrollTo({
           top: viewport.current.scrollHeight,
-          behavior: "smooth"
+          behavior: "smooth",
         });
       }, 100);
     }
@@ -176,14 +209,27 @@ const { chatId } = useParams();
   }, [messages]);
 
   return (
-    <Flex direction="column" h="100vh" bg="#0b0b0d" style={{ position: 'relative' }}>
-      
+    <Flex
+      direction="column"
+      h="100vh"
+      bg="#0b0b0d"
+      style={{ position: "relative" }}
+    >
       {/* HEADER: Dynamic Status & Back Button */}
-      <Paper p="xs" radius={0} bg="#1a1b1e" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", zIndex: 10 }}>
+      <Paper
+        p="xs"
+        radius={0}
+        bg="#1a1b1e"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", zIndex: 10 }}
+      >
         <Group justify="space-between">
           <Group gap="sm">
             {isMobile && (
-              <ActionIcon variant="subtle" color="gray" onClick={() => navigate('/chat')}>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={() => navigate("/chat")}
+              >
                 <IconArrowLeft size={20} />
               </ActionIcon>
             )}
@@ -191,7 +237,9 @@ const { chatId } = useParams();
               {partner?.username?.charAt(0).toUpperCase()}
             </Avatar>
             <Box>
-              <Text size="sm" fw={600} c="white">{partner?.username || "Vibe User"}</Text>
+              <Text size="sm" fw={600} c="white">
+                {partner?.username || "Vibe User"}
+              </Text>
               {isTyping ? (
                 <Box className="typing-indicator">
                   <span></span>
@@ -200,22 +248,30 @@ const { chatId } = useParams();
                 </Box>
               ) : partner?.isOnline ? (
                 <Group gap={4}>
-                  <Box w={6} h={6} bg="green" style={{ borderRadius: '50%' }} />
-                  <Text size="xs" c="green">Online</Text>
+                  <Box w={6} h={6} bg="green" style={{ borderRadius: "50%" }} />
+                  <Text size="xs" c="green">
+                    Online
+                  </Text>
                 </Group>
               ) : (
                 <Text size="xs" c="dimmed">
-                  Last seen {partner?.lastSeen ? new Date(partner.lastSeen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "offline"}
+                  Last seen{" "}
+                  {partner?.lastSeen
+                    ? new Date(partner.lastSeen).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "offline"}
                 </Text>
               )}
             </Box>
           </Group>
-          <Text 
-            size="20px" 
-            weight={900} 
-            variant="gradient" 
-            gradient={{ from: 'cyan', to: 'indigo' }}
-            style={{ letterSpacing: '-1px' }}
+          <Text
+            size="20px"
+            weight={900}
+            variant="gradient"
+            gradient={{ from: "cyan", to: "indigo" }}
+            style={{ letterSpacing: "-1px" }}
           >
             VibeApp
           </Text>
@@ -223,30 +279,58 @@ const { chatId } = useParams();
       </Paper>
 
       {/* CHAT AREA: Modern Bubbles with Double Ticks */}
-      <ScrollArea flex={1} p="lg" viewportRef={viewport} style={{ background: "linear-gradient(180deg, #13131b 0%, #141517 100%)" }}>
-        {loading && <Center><Loader size="xs" color="indigo" /></Center>}
+      <ScrollArea
+        flex={1}
+        p="lg"
+        viewportRef={viewport}
+        style={{
+          background: "linear-gradient(180deg, #13131b 0%, #141517 100%)",
+        }}
+      >
+        {loading && (
+          <Center>
+            <Loader size="xs" color="indigo" />
+          </Center>
+        )}
         <Stack gap="xs">
           {messages.map((m) => (
-            <Box key={m._id} style={{ alignSelf: m.sender._id === user._id ? 'flex-end' : 'flex-start' }}>
-              <Paper 
-                p="xs" 
-                radius="lg" 
-                bg={m.sender._id === user._id ? "#5F3DC4" : "#25262B"} 
-                style={{ 
-                  color: "white", 
-                  maxWidth: '280px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                  borderBottomRightRadius: m.sender._id === user._id ? '4px' : '16px',
-                  borderBottomLeftRadius: m.sender._id !== user._id ? '4px' : '16px',
+            <Box
+              key={m._id}
+              style={{
+                alignSelf:
+                  m.sender._id === user._id ? "flex-end" : "flex-start",
+              }}
+            >
+              <Paper
+                p="xs"
+                radius="lg"
+                bg={m.sender._id === user._id ? "#5F3DC4" : "#25262B"}
+                style={{
+                  color: "white",
+                  maxWidth: "280px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                  borderBottomRightRadius:
+                    m.sender._id === user._id ? "4px" : "16px",
+                  borderBottomLeftRadius:
+                    m.sender._id !== user._id ? "4px" : "16px",
                 }}
               >
-                <Text size="sm" style={{ wordBreak: 'break-word' }}>{m.text}</Text>
+                <Text size="sm" style={{ wordBreak: "break-word" }}>
+                  {m.text}
+                </Text>
                 <Group justify="flex-end" gap={4} mt={2}>
                   <Text size="10px" opacity={0.5}>
-                    {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(m.createdAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </Text>
                   {m.sender._id === user._id && (
-                    <IconCheck size={14} color={m.isRead ? "#00ff00" : "gray"} stroke={3} />
+                    <IconCheck
+                      size={14}
+                      color={m.isRead ? "#00ff00" : "gray"}
+                      stroke={3}
+                    />
                   )}
                 </Group>
               </Paper>
@@ -262,23 +346,23 @@ const { chatId } = useParams();
             placeholder="Type your vibe..."
             radius="xl"
             flex={1}
-            styles={{ 
-              input: { 
-                backgroundColor: "#25262B", 
-                border: 'none', 
-                color: 'white',
-                '&:focus': { border: '1px solid #5F3DC4' }
-              } 
+            styles={{
+              input: {
+                backgroundColor: "#25262B",
+                border: "none",
+                color: "white",
+                "&:focus": { border: "1px solid #5F3DC4" },
+              },
             }}
             value={newMessage}
             onChange={handleTyping}
-            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
-          <ActionIcon 
-            color="indigo" 
-            size="xl" 
-            radius="xl" 
-            variant="filled" 
+          <ActionIcon
+            color="indigo"
+            size="xl"
+            radius="xl"
+            variant="filled"
             onClick={sendMessage}
             disabled={!newMessage.trim()}
           >

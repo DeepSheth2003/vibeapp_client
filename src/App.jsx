@@ -13,7 +13,7 @@ import NotificationsPage from "./pages/NotificationsPage";
 import { useEffect } from "react";
 import ChatPage from "./pages/ChatPage";
 import ChatWindow from "./pages/ChatWindow";
-
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   const { isAuthenticated } = useSelector((state) => state.auth);
@@ -41,6 +41,7 @@ function App() {
         <Route path="/chat" element={<ChatPage />}>
           <Route path=":chatId" element={<ChatWindow />} />
         </Route>
+        <Route path="/profile" element={<ProfilePage />} />
         {/* <Route path="/settings" element={<SettingsPage />} /> */}
       </Route>
 
