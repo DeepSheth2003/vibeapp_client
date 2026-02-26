@@ -162,7 +162,7 @@ export default function Dashboard() {
                 rel="noreferrer"
                 style={{ color: "cyan", textDecoration: "none" }}
               >
-                Deep
+                @Deep
               </a>
             </Text>
           </Stack>
